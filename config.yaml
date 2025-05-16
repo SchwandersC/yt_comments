@@ -1,0 +1,9 @@
+data_dir: "data"
+
+recompute:
+  load_clean_tokenize: false
+  embed: false
+  merge_dislikes: false
+  sentiment: false
+  features: false
+  train: true

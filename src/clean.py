@@ -1,10 +1,14 @@
 import re
 import html
 import emoji
+import logging
 from bs4 import BeautifulSoup
 from nltk.corpus import words, stopwords
 from nltk.stem import WordNetLemmatizer
 
+logger = logging.getLogger("yt_pipeline")
+
+# Preload NLTK sets
 wordset = set(words.words())
 stopwordset = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
@@ -17,7 +21,7 @@ def clean_text(text):
         text = html.unescape(text)
         return emoji.demojize(BeautifulSoup(text, 'html.parser').get_text(separator='\n'))
     except Exception as e:
-        print(f"[clean_text] Failed to clean text: {text[:60]}... | Error: {e}")
+        logger.warning(f"[clean_text] Failed to clean text: {text[:60]}... | Error: {e}")
         return ""
 
 def clean_comments(df):
@@ -25,8 +29,9 @@ def clean_comments(df):
         df['textDisplay'] = df['textDisplay'].astype(str)
         df['textDisplay'] = df['textDisplay'].str.replace(r'@\w+', '', regex=True)
         df['textDisplay'] = df['textDisplay'].apply(clean_text)
+        logger.info("[clean_comments] Finished cleaning text.")
     except Exception as e:
-        print(f"[clean_comments] Error during text cleaning: {e}")
+        logger.error("[clean_comments] Error during text cleaning", exc_info=True)
     return df
 
 def tokenize_comments(df):
@@ -38,15 +43,19 @@ def tokenize_comments(df):
                 if word.lower() in wordset and word.lower() not in stopwordset
             ]
         except Exception as e:
-            print(f"[tokenizer] Failed to tokenize: {sentence[:60]}... | Error: {e}")
+            logger.warning(f"[tokenizer] Failed to tokenize: {sentence[:60]}... | Error: {e}")
             return []
 
-    df['wordtoken'] = df['textDisplay'].apply(tokenizer)
+    try:
+        df['wordtoken'] = df['textDisplay'].apply(tokenizer)
+        empty_tokens = df[df['wordtoken'].apply(lambda x: len(x) == 0)]
 
-    # Optional: show a few empty token samples for inspection
-    empty_tokens = df[df['wordtoken'].apply(lambda x: len(x) == 0)]
-    if len(empty_tokens) > 0:
-        print(f"[tokenize_comments] {len(empty_tokens)} rows resulted in empty tokens. Sample:")
-        print(empty_tokens[['textDisplay']].head(3))
+        if not empty_tokens.empty:
+            logger.warning(f"[tokenize_comments] {len(empty_tokens)} rows resulted in empty tokens.")
+            logger.debug(empty_tokens[['textDisplay']].head(3).to_string(index=False))
+        else:
+            logger.info("[tokenize_comments] All rows successfully tokenized.")
+    except Exception as e:
+        logger.error("[tokenize_comments] Error applying tokenizer", exc_info=True)
 
     return df

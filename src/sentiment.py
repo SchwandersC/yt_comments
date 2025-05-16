@@ -1,4 +1,8 @@
 from nltk.sentiment import SentimentIntensityAnalyzer
+import logging
+
+# Use shared logger
+logger = logging.getLogger("yt_pipeline")
 
 def score_sentiment(df):
     sia = SentimentIntensityAnalyzer()
@@ -20,9 +24,9 @@ def score_sentiment(df):
     df['sentiment'] = df['textDisplay'].apply(classify_sentiment)
 
     if failed_rows:
-        print(f"[score_sentiment] {len(failed_rows)} rows failed sentiment scoring. Sample:")
+        logger.warning(f"[score_sentiment] {len(failed_rows)} rows failed sentiment scoring.")
         for text, error in failed_rows[:3]:
-            print(f"  {text} | Error: {error}")
+            logger.debug(f"Failed row snippet: '{text}' | Error: {error}")
 
-    print(f"[score_sentiment] Sentiment assigned to {len(df)} rows.")
+    logger.info(f"[score_sentiment] Sentiment assigned to {len(df)} rows.")
     return df

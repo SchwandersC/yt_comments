@@ -1,20 +1,26 @@
 import numpy as np
 import gensim.downloader as gdownload
+import logging
+
+logger = logging.getLogger("yt_pipeline")
 
 def embed_comments(df):
     try:
         glove = gdownload.load('glove-twitter-50')
+        logger.info("Successfully loaded GloVe embeddings.")
     except Exception as e:
-        print(f"[embed_comments] Failed to load GloVe embeddings: {e}")
+        logger.error("[embed_comments] Failed to load GloVe embeddings", exc_info=True)
         raise
 
     def sentence_embed(sentence):
         try:
             if not isinstance(sentence, list) or not sentence:
                 return np.zeros(50)
-            return sum((glove[word] if word in glove else np.zeros(50) for word in sentence), np.zeros(50)) / len(sentence)
+            return sum(
+                (glove[word] if word in glove else np.zeros(50)) for word in sentence
+            ) / len(sentence)
         except Exception as e:
-            print(f"[sentence_embed] Failed to embed sentence: {sentence} | Error: {e}")
+            logger.warning(f"[sentence_embed] Failed to embed sentence: {sentence[:10]} | Error: {e}")
             return np.zeros(50)
 
     try:
@@ -24,10 +30,12 @@ def embed_comments(df):
 
         empty_rows = df[df['tokenlength'] == 0]
         if not empty_rows.empty:
-            print(f"[embed_comments] {len(empty_rows)} rows with empty tokenlength. Sample:")
-            print(empty_rows[['textDisplay']].head(3))
+            logger.warning(f"[embed_comments] {len(empty_rows)} rows with empty tokenlength. Showing sample:")
+            logger.debug(empty_rows[['textDisplay']].head(3).to_string(index=False))
     except Exception as e:
-        print(f"[embed_comments] Error during embedding: {e}")
+        logger.error("[embed_comments] Error during embedding", exc_info=True)
         raise
 
-    return df[df['tokenlength'] > 0]
+    df_final = df[df['tokenlength'] > 0]
+    logger.info(f"[embed_comments] Embedded {len(df_final)} comments with non-empty tokens.")
+    return df_final

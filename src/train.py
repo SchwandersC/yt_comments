@@ -1,5 +1,6 @@
 import os
 import joblib
+import logging
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay
@@ -13,18 +14,21 @@ try:
 except ImportError:
     has_xgboost = False
 
+# Get shared logger
+logger = logging.getLogger("yt_pipeline")
+
 def evaluate_model(model, x_test, y_test, name, output_dir="data/models"):
     try:
         y_pred = model.predict(x_test)
 
-        print(f"{name} Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-        print(classification_report(y_test, y_pred))
+        logger.info(f"{name} Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+        logger.debug(f"{name} Classification Report:\n{classification_report(y_test, y_pred)}")
 
         os.makedirs(output_dir, exist_ok=True)
 
         model_path = os.path.join(output_dir, f"{name.replace(' ', '_').lower()}.pkl")
         joblib.dump(model, model_path)
-        print(f"Saved model to {model_path}")
+        logger.info(f"Saved model to {model_path}")
 
         display_labels = sorted(y_test.unique().astype(str))
         disp = ConfusionMatrixDisplay.from_predictions(y_test, y_pred, display_labels=display_labels)
@@ -34,10 +38,10 @@ def evaluate_model(model, x_test, y_test, name, output_dir="data/models"):
         fig_path = os.path.join(output_dir, f"{name.replace(' ', '_').lower()}_confusion_matrix.png")
         plt.savefig(fig_path, dpi=300)
         plt.close()
-        print(f"Saved confusion matrix to {fig_path}")
+        logger.info(f"Saved confusion matrix to {fig_path}")
 
     except Exception as e:
-        print(f"[evaluate_model] Error evaluating {name}: {e}")
+        logger.error(f"[evaluate_model] Error evaluating {name}: {e}", exc_info=True)
 
 def train_and_evaluate_all_models(train_df, use_smote=True, selected_models=None):
     if selected_models is None:
@@ -49,6 +53,7 @@ def train_and_evaluate_all_models(train_df, use_smote=True, selected_models=None
     ]
     for col in required_cols:
         if col not in train_df.columns:
+            logger.error(f"Missing required column in training data: {col}")
             raise ValueError(f"Missing required column in training data: {col}")
 
     X = train_df[['comment_class_negative', 'comment_class_neutral', 'comment_class_positive', 'like-view']]
@@ -69,25 +74,33 @@ def train_and_evaluate_all_models(train_df, use_smote=True, selected_models=None
 
     if "xgboost" in selected_models:
         if not has_xgboost:
-            print("XGBoost not installed. Skipping XGBoost model.")
+            logger.warning("XGBoost not installed. Skipping XGBoost model.")
         else:
-            model_defs["XGBoost"] = XGBClassifier(n_estimators=100, max_depth=4, use_label_encoder=False, eval_metric='mlogloss', random_state=2023)
+            model_defs["XGBoost"] = XGBClassifier(
+                n_estimators=100,
+                max_depth=4,
+                use_label_encoder=False,
+                eval_metric='mlogloss',
+                random_state=2023
+            )
 
-    print("Training models on original data...")
+    logger.info("Training models on original data...")
     for name, model in model_defs.items():
+        logger.info(f"Training {name}...")
         model.fit(x_train, y_train)
         evaluate_model(model, x_test, y_test, name)
 
     if use_smote:
-        print("Training models with SMOTE oversampling...")
+        logger.info("Training models with SMOTE oversampling...")
         try:
             smote = SMOTE(random_state=42)
             x_train_resampled, y_train_resampled = smote.fit_resample(x_train, y_train)
 
             for name, model in model_defs.items():
+                logger.info(f"Training {name} with SMOTE...")
                 model.fit(x_train_resampled, y_train_resampled)
                 evaluate_model(model, x_test, y_test, name + " (SMOTE)")
         except Exception as e:
-            print(f"[SMOTE] Error during SMOTE training: {e}")
+            logger.error(f"[SMOTE] Error during SMOTE training: {e}", exc_info=True)
     else:
-        print("SMOTE is disabled via config.")
+        logger.info("SMOTE is disabled via config.")

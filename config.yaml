@@ -7,3 +7,10 @@ recompute:
   sentiment: false
   features: false
   train: true
+
+classification_type: "binary"    # or "multiclass"
+use_smote: true
+models:
+  - random_forest
+  - gradient_boosting
+  - xgboost

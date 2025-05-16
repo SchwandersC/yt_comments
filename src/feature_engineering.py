@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
-def prepare_features(df, dislike_file):
+def prepare_features(df, dislike_file, classification_type):
     try:
         df = pd.get_dummies(df, columns=['sentiment'], prefix='comment_class')
     except Exception as e:
@@ -56,9 +56,25 @@ def prepare_features(df, dislike_file):
     try:
         train_df['norm_ratio'] = pd.to_numeric(train_df['norm_ratio'], errors='coerce')
         train_df = train_df.dropna()
-        train_df['video_type'] = pd.cut(train_df['norm_ratio'], bins=[0, 2.5, 4, 8],
-                                        labels=['Negative', 'Neutral', 'Positive'], include_lowest=True)
-        train_df['video_type_clean'] = train_df['video_type'].map({'Negative': -1, 'Neutral': 0, 'Positive': 1})
+
+        if classification_type == "binary":
+            train_df['video_type'] = pd.cut(
+                train_df['norm_ratio'],
+                bins=[0, 3, np.inf],
+                labels=['Low', 'High'],
+                include_lowest=True
+            )
+            train_df['video_type_clean'] = train_df['video_type'].map({'Low': 0, 'High': 1})
+        else:
+            train_df['video_type'] = pd.cut(
+                train_df['norm_ratio'],
+                bins=[0, 2.5, 4, 8],
+                labels=['Negative', 'Neutral', 'Positive'],
+                include_lowest=True
+            )
+            train_df['video_type_clean'] = train_df['video_type'].map(
+                {'Negative': -1, 'Neutral': 0, 'Positive': 1}
+            )
     except Exception as e:
         print(f"Error binning norm_ratio or mapping labels: {e}")
         raise

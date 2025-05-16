@@ -32,8 +32,13 @@ def parse_args():
 def main():
     args = parse_args()
     config = load_config(args.config)
+
     DATA_DIR = config["data_dir"]
     RECOMPUTE = config["recompute"]
+    classification_type = config.get("classification_type", "multiclass")  # new
+    use_smote = config.get("use_smote", True)
+    selected_models = config.get("models", ["random_forest", "decision_tree", "gradient_boosting"])
+
 
     checkpoint_paths = {
         "cleaned": os.path.join(DATA_DIR, "checkpoint_cleaned.pkl"),
@@ -106,13 +111,17 @@ def main():
         train_df = pd.read_pickle(checkpoint_paths["features"])
     else:
         print("Preparing features...")
-        train_df = prepare_features(df, os.path.join(DATA_DIR, "youtube_dislike_dataset.csv"))
+        train_df = prepare_features(
+            df,
+            os.path.join(DATA_DIR, "youtube_dislike_dataset.csv"),
+            classification_type=classification_type
+        )
         train_df.to_pickle(checkpoint_paths["features"])
 
     # Step 7: Training
     if RECOMPUTE["train"]:
         print("Training and evaluating models...")
-        train_and_evaluate_all_models(train_df)
+        train_and_evaluate_all_models(train_df, use_smote=use_smote, selected_models=selected_models)
     else:
         print("Skipping training step.")
 

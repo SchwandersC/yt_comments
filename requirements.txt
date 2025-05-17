@@ -9,5 +9,7 @@ scikit-learn
 imbalanced-learn
 matplotlib
 seaborn
-pdoc
-pytests
+pdoc3 
+pytest
+joblib  
+xgboost

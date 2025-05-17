@@ -1,12 +1,28 @@
+"""
+Visualization utility for generating sentiment-specific word clouds.
+"""
+
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import os
 import logging
 
-# Use default logger if none provided
+# Use shared logger
 logger = logging.getLogger("yt_pipeline")
 
 def plot_wordcloud(df, sentiment_label, output_dir="data/wordclouds", extra_stopwords=None):
+    """
+    Generate and save a word cloud image for a specified sentiment label.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing a 'textDisplay' column and a 'sentiment' label column.
+        sentiment_label (str): Sentiment category to filter comments by (e.g., 'positive').
+        output_dir (str): Directory where the word cloud image will be saved.
+        extra_stopwords (set or list, optional): Additional stopwords to exclude from the word cloud.
+
+    Returns:
+        None. Saves a PNG image to the specified directory.
+    """
     try:
         comments = df['textDisplay'][df['sentiment'] == sentiment_label]
         text = " ".join(comments)
@@ -39,4 +55,4 @@ def plot_wordcloud(df, sentiment_label, output_dir="data/wordclouds", extra_stop
         logger.info(f"Saved word cloud to {filepath}")
 
     except Exception as e:
-        logger.error(f"Failed to generate word cloud for '{sentiment_label}': {e}")
+        logger.error(f"Failed to generate word cloud for '{sentiment_label}': {e}", exc_info=True)

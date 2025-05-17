@@ -25,6 +25,8 @@ COPY . .
 
 # Create logs directory
 RUN mkdir -p logs
+# Download required NLTK corpora
+RUN python -m nltk.downloader words stopwords wordnet vader_lexicon omw-1.4
 
 # Set default command
 CMD ["python", "main.py", "--config=config.yaml"]

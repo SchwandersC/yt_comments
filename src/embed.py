@@ -5,6 +5,20 @@ import logging
 logger = logging.getLogger("yt_pipeline")
 
 def embed_comments(df):
+    """
+    Generates sentence embeddings for each comment in the DataFrame using GloVe word vectors.
+
+    This function:
+    - Loads GloVe embeddings (`glove-twitter-50`)
+    - Computes an average embedding vector for each tokenized comment
+    - Filters out rows with zero tokens or likeCount == 0
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing at least 'wordtoken' and 'likeCount' columns.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame with additional 'word_vector' and 'tokenlength' columns.
+    """
     try:
         glove = gdownload.load('glove-twitter-50')
         logger.info("Successfully loaded GloVe embeddings.")
@@ -13,6 +27,15 @@ def embed_comments(df):
         raise
 
     def sentence_embed(sentence):
+        """
+        Computes the average GloVe embedding for a list of tokens.
+
+        Args:
+            sentence (list): A list of word tokens.
+
+        Returns:
+            np.ndarray: A 50-dimensional embedding vector.
+        """
         try:
             if not isinstance(sentence, list) or not sentence:
                 return np.zeros(50)

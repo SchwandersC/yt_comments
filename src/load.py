@@ -7,6 +7,20 @@ import logging
 logger = logging.getLogger("yt_pipeline")
 
 def load_all_comments(data_dir):
+    """
+    Loads and merges multiple comment CSV files from the specified directory into a single DataFrame.
+    
+    Filters out reply-level comments from Charlie's dataset and ensures consistent columns across sources.
+
+    Args:
+        data_dir (str): Path to the directory containing the comment CSV files.
+
+    Returns:
+        pd.DataFrame: Merged and cleaned comment DataFrame containing top-level comments only.
+
+    Raises:
+        Exception: If any file fails to load or merge.
+    """
     try:
         df_chris = pd.read_csv(os.path.join(data_dir, "chris_comments.csv"))
         df_charlie = pd.read_csv(os.path.join(data_dir, "Charlie_merged_comments.csv"))
@@ -19,7 +33,7 @@ def load_all_comments(data_dir):
 
     try:
         df_charlie = df_charlie[df_charlie['parentId'].isnull()]
-        df_cici = df_cici[[
+        df_cici = df_cici[[ 
             'channelId', 'videoId', 'textDisplay', 'textOriginal', 'parentId',
             'authorDisplayName', 'authorProfileImageUrl', 'authorChannelUrl',
             'authorChannelId', 'canRate', 'viewerRating', 'likeCount',
@@ -45,6 +59,22 @@ def load_all_comments(data_dir):
     return df
 
 def merge_dislikes(df, dislike_path):
+    """
+    Merges the comment DataFrame with YouTube dislike statistics, computing log ratios for classification.
+
+    Performs cleaning of invalid rows (e.g. 0 dislikes), handles infinite values, and ensures consistent schema.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing comment data with a 'videoId' column.
+        dislike_path (str): Path to the CSV file with video-level dislike and like stats.
+
+    Returns:
+        pd.DataFrame: Merged DataFrame with additional columns including `ratio` and `norm_ratio`.
+
+    Raises:
+        FileNotFoundError: If the dislike file path does not exist.
+        Exception: If merging or log transformation fails.
+    """
     if not os.path.exists(dislike_path):
         logger.error(f"[merge_dislikes] Dislike file not found: {dislike_path}")
         raise FileNotFoundError(f"Dislike file not found: {dislike_path}")

@@ -8,12 +8,22 @@ from nltk.stem import WordNetLemmatizer
 
 logger = logging.getLogger("yt_pipeline")
 
-# Preload NLTK sets
+# Preload NLTK resources for performance
 wordset = set(words.words())
 stopwordset = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
 def clean_text(text):
+    """
+    Cleans raw comment text by removing HTML tags, unescaping HTML entities,
+    demojizing emojis, and stripping user mentions.
+
+    Args:
+        text (str): The raw text to clean.
+
+    Returns:
+        str: A cleaned version of the input text.
+    """
     try:
         text = re.sub(r'<!--(.*?)-->', '', text)
         text = re.sub(r'<i>(.*?)</i>', r'\1', text)
@@ -25,6 +35,15 @@ def clean_text(text):
         return ""
 
 def clean_comments(df):
+    """
+    Applies text cleaning to all rows in the DataFrame's 'textDisplay' column.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing a 'textDisplay' column.
+
+    Returns:
+        pd.DataFrame: The DataFrame with cleaned text.
+    """
     try:
         df['textDisplay'] = df['textDisplay'].astype(str)
         df['textDisplay'] = df['textDisplay'].str.replace(r'@\w+', '', regex=True)
@@ -35,6 +54,16 @@ def clean_comments(df):
     return df
 
 def tokenize_comments(df):
+    """
+    Tokenizes cleaned comment text into lemmatized words, removing stopwords
+    and non-English words.
+
+    Args:
+        df (pd.DataFrame): A DataFrame with a 'textDisplay' column containing cleaned text.
+
+    Returns:
+        pd.DataFrame: The DataFrame with a new 'wordtoken' column containing token lists.
+    """
     def tokenizer(sentence):
         try:
             return [

@@ -1,3 +1,9 @@
+"""
+Model training and evaluation module for YouTube comment sentiment classification.
+
+Supports multiple classifiers, SMOTE oversampling, model saving, and confusion matrix visualization.
+"""
+
 import os
 import joblib
 import logging
@@ -14,10 +20,22 @@ try:
 except ImportError:
     has_xgboost = False
 
-# Get shared logger
 logger = logging.getLogger("yt_pipeline")
 
 def evaluate_model(model, x_test, y_test, name, output_dir="data/models"):
+    """
+    Evaluates a trained model, saves it to disk, and plots the confusion matrix.
+
+    Args:
+        model: Fitted classification model.
+        x_test (pd.DataFrame): Test feature matrix.
+        y_test (pd.Series): Ground truth labels for evaluation.
+        name (str): Name of the model (used in file naming).
+        output_dir (str): Directory where model and plots are saved.
+
+    Returns:
+        None
+    """
     try:
         y_pred = model.predict(x_test)
 
@@ -25,7 +43,6 @@ def evaluate_model(model, x_test, y_test, name, output_dir="data/models"):
         logger.debug(f"{name} Classification Report:\n{classification_report(y_test, y_pred)}")
 
         os.makedirs(output_dir, exist_ok=True)
-
         model_path = os.path.join(output_dir, f"{name.replace(' ', '_').lower()}.pkl")
         joblib.dump(model, model_path)
         logger.info(f"Saved model to {model_path}")
@@ -43,7 +60,22 @@ def evaluate_model(model, x_test, y_test, name, output_dir="data/models"):
     except Exception as e:
         logger.error(f"[evaluate_model] Error evaluating {name}: {e}", exc_info=True)
 
+
 def train_and_evaluate_all_models(train_df, use_smote=True, selected_models=None):
+    """
+    Trains and evaluates a selection of classifiers with optional SMOTE augmentation.
+
+    Args:
+        train_df (pd.DataFrame): Data containing input features and `video_type_clean` as target.
+        use_smote (bool): Whether to apply SMOTE to address class imbalance.
+        selected_models (list[str]): List of model keys to train (e.g. ['random_forest', 'xgboost']).
+
+    Raises:
+        ValueError: If required columns are missing from the input DataFrame.
+
+    Returns:
+        None
+    """
     if selected_models is None:
         selected_models = ["random_forest", "decision_tree", "gradient_boosting"]
 
@@ -67,7 +99,9 @@ def train_and_evaluate_all_models(train_df, use_smote=True, selected_models=None
         model_defs["Decision Tree"] = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=2023)
 
     if "gradient_boosting" in selected_models:
-        model_defs["Gradient Boosting"] = GradientBoostingClassifier(n_estimators=80, learning_rate=0.2, max_depth=3, random_state=2023)
+        model_defs["Gradient Boosting"] = GradientBoostingClassifier(
+            n_estimators=80, learning_rate=0.2, max_depth=3, random_state=2023
+        )
 
     if "random_forest" in selected_models:
         model_defs["Random Forest"] = RandomForestClassifier(n_estimators=1000, random_state=2023)

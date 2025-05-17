@@ -6,6 +6,29 @@ import logging
 logger = logging.getLogger("yt_pipeline")
 
 def prepare_features(df, dislike_file, classification_type):
+    """
+    Prepares the feature matrix for model training by engineering sentiment features,
+    merging engagement metrics, and assigning target labels based on ratio bins.
+
+    This function performs the following:
+    - One-hot encodes the sentiment labels
+    - Aggregates sentiment proportions by video
+    - Merges in like-to-view ratio from external dislike data
+    - Normalizes sentiment counts per video
+    - Bins the norm_ratio column into either binary or multiclass labels for classification
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing cleaned and scored comment data.
+        dislike_file (str): Path to the CSV file containing video engagement statistics.
+        classification_type (str): Type of classification task, either `"binary"` or `"multiclass"`.
+
+    Returns:
+        pd.DataFrame: A new DataFrame with model-ready features and target variable `video_type_clean`.
+
+    Raises:
+        FileNotFoundError: If the `dislike_file` does not exist.
+        Exception: On various processing or merging failures.
+    """
     try:
         df = pd.get_dummies(df, columns=['sentiment'], prefix='comment_class')
         logger.info("One-hot encoding completed for 'sentiment'.")
@@ -14,9 +37,9 @@ def prepare_features(df, dislike_file, classification_type):
         raise
 
     try:
-        sentiment_sums = df.groupby('videoId')[[
-            'comment_class_negative',
-            'comment_class_neutral',
+        sentiment_sums = df.groupby('videoId')[[ 
+            'comment_class_negative', 
+            'comment_class_neutral', 
             'comment_class_positive'
         ]].sum()
         logger.info("Aggregated sentiment counts by videoId.")
@@ -91,7 +114,6 @@ def prepare_features(df, dislike_file, classification_type):
                 'Positive': 1
             })
             logger.info("Binned norm_ratio into 3 multiclass labels.")
-
     except Exception as e:
         logger.error("Error binning norm_ratio or mapping class labels", exc_info=True)
         raise

@@ -1,0 +1,57 @@
+# ============================================
+# Google Cloud Run Deployment (Dockerized App)
+# ============================================
+
+# 1. Install gcloud CLI (if not already installed)
+# Ubuntu/Debian (Snap-based install)
+sudo snap install google-cloud-cli
+
+# 2. Authenticate with your Google account
+gcloud auth login
+
+# 3. Set up gcloud project
+
+# Replace 'ytcommentsanalysis' with a valid project ID (only lowercase, digits, hyphens)
+gcloud projects create ytcommentsanalysis
+
+# Set the project as default
+gcloud config set project ytcommentsanalysis
+
+# 4. Enable required Google Cloud APIs
+gcloud services enable run.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+
+# 5. Create Artifact Registry repo to store Docker image
+gcloud artifacts repositories create ytcomments-repo \
+  --repository-format=docker \
+  --location=us-central1 \
+  --description="Docker repo for ytcomments app"
+
+# 6. Tag your local Docker image for pushing to Artifact Registry
+
+# Replace [PROJECT-ID] with your actual project ID
+docker tag comment_inference us-central1-docker.pkg.dev/[PROJECT-ID]/ytcomments-repo/comment_inference
+
+# Example if project ID is ytcommentsanalysis:
+# docker tag comment_inference us-central1-docker.pkg.dev/ytcommentsanalysis/ytcomments-repo/comment_inference
+
+# 7. Push the Docker image
+docker push us-central1-docker.pkg.dev/[PROJECT-ID]/ytcomments-repo/comment_inference
+
+# 8. Deploy to Cloud Run
+gcloud run deploy ytcomments-service \
+  --image=us-central1-docker.pkg.dev/[PROJECT-ID]/ytcomments-repo/comment_inference \
+  --platform=managed \
+  --region=us-central1 \
+  --allow-unauthenticated \
+  --port=5000
+
+# 9. Visit the URL printed by the last command to access your service
+
+# =============================
+# Notes:
+# - Your Dockerfile must EXPOSE the correct port (e.g., 5000)
+# - Gunicorn should be configured to bind to 0.0.0.0:5000
+# - If you're running locally and get "port already allocated", use:
+#   docker kill $(docker ps -q)  # to free ports (use carefully)
+# =============================

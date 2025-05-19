@@ -1,19 +1,19 @@
 # 📊 YouTube Comment Sentiment Analysis Pipeline
 
-🧠 Motivation
+## 🧠 Motivation
 In 2019, YouTube made the controversial decision to remove public dislike counts from its videos. While the goal was to reduce hate-driven behavior and spam, the change also removed an important mechanism for community feedback and content accountability.
 
 Today, if someone wants to gauge how a video has been received, they must dig through the comment section—a time-consuming and often biased process.
 
 With the rise of advanced natural language processing and machine learning techniques, this process can now be automated. By analyzing the sentiment and patterns in viewer comments, it's possible to quickly estimate a video's trustworthiness and reception—saving users time and potentially protecting them from misinformation or harmful content.
 
-🧪 Project Overview
+## 🧪 Project Overview
 This project applies machine learning to predict the like-to-dislike ratio of YouTube videos based on user comments and engagement metrics. It has two main components:
 
-Model Training & Analysis
+### Model Training & Analysis
 A training pipeline that takes in a curated dataset of YouTube videos with known dislike counts, performs sentiment analysis, and trains classification models to learn engagement patterns.
 
-Interactive Web App
+### Interactive Web App
 A Flask-powered web app where users can input any YouTube video ID and receive a predicted like-to-dislike ratio, powered by the trained models. The app is currently hosted here https://ytcomments-api-278551739864.us-central1.run.app 
 (Caution: App may take a minute or so to load due to cloud run's cold start container app solutions)
 

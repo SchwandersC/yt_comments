@@ -152,6 +152,16 @@ python3 -m http.server 8080 --directory docs
 └── Dockerfile
 ```
 
+
+---
+
+## 🎥 Demo
+
+[![Watch the demo](https://img.youtube.com/vi/wyLxvtEMfV8/0.jpg)](https://www.youtube.com/watch?v=wyLxvtEMfV8)
+
+Click the image above to watch a walkthrough of the pipeline and web app.
+
+
 ---
 
 ## 📌 License

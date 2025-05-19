@@ -2,3 +2,7 @@ data/
 *.csv
 src/__pycache__
 *.log
+.env
+google-cloud-sdk/
+__pycache__/
+.pytest_cache/

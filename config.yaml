@@ -5,11 +5,11 @@ recompute:
   embed: false
   merge_dislikes: false
   sentiment: false
-  features: false
+  features: true
   train: true
 
-classification_type: "binary"    # or "multiclass"
-use_smote: true
+classification_type: "multiclass"    # "binary" or "multiclass"
+use_smote: false
 models:
   - random_forest
   - gradient_boosting

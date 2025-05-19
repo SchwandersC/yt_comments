@@ -3,6 +3,12 @@ import gensim.downloader as gdownload
 import logging
 
 logger = logging.getLogger("yt_pipeline")
+from gensim.models import KeyedVectors
+glove = KeyedVectors.load_word2vec_format(
+    './gensim-data/glove-twitter-50/glove-twitter-50.gz'
+)
+
+
 
 def embed_comments(df):
     """
@@ -20,7 +26,6 @@ def embed_comments(df):
         pd.DataFrame: Filtered DataFrame with additional 'word_vector' and 'tokenlength' columns.
     """
     try:
-        glove = gdownload.load('glove-twitter-50')
         logger.info("Successfully loaded GloVe embeddings.")
     except Exception as e:
         logger.error("[embed_comments] Failed to load GloVe embeddings", exc_info=True)

@@ -7,6 +7,16 @@ Today, if someone wants to gauge how a video has been received, they must dig th
 
 With the rise of advanced natural language processing and machine learning techniques, this process can now be automated. By analyzing the sentiment and patterns in viewer comments, it's possible to quickly estimate a video's trustworthiness and reception—saving users time and potentially protecting them from misinformation or harmful content.
 
+---
+
+## 🎥 Demo
+
+[![Watch the demo](https://img.youtube.com/vi/wyLxvtEMfV8/0.jpg)](https://www.youtube.com/watch?v=wyLxvtEMfV8)
+
+Click the image above to watch a walkthrough of the pipeline and web app.
+
+---
+
 ## 🧪 Project Overview
 This project applies machine learning to predict the like-to-dislike ratio of YouTube videos based on user comments and engagement metrics. It has two main components:
 
@@ -122,14 +132,6 @@ docker run -p 5000:5000 yt-comments-pipeline python app.py
 ```
 
 This will expose the app at `http://localhost:5000`.
-
----
-
-## 🎥 Demo
-
-[![Watch the demo](https://img.youtube.com/vi/wyLxvtEMfV8/0.jpg)](https://www.youtube.com/watch?v=wyLxvtEMfV8)
-
-Click the image above to watch a walkthrough of the pipeline and web app.
 
 
 ---

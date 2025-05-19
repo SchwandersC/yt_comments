@@ -60,7 +60,7 @@ python main.py --retrain-only
 ```
 ### 4. Reach out
 
-If you would like to replicate this work with my data please reach out to me @caneuenschwander@gmail.com
+- If you would like to replicate this work with my data please reach out to me @caneuenschwander@gmail.com
 ---
 
 ## 🧠 Web Inference App
